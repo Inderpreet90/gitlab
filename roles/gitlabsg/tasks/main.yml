@@ -1,0 +1,15 @@
+---
+
+- ec2_group:
+    name: "{{ inventory_hostname }}"
+    description: "{{ ec2_securitygroup_desc }}"
+    region: "{{ aws_region }}"
+    rules: "{{ ec2_securitygroup_rules }}"
+    vpc_id: "{{ aws_vpc_id }}"
+  register: gitlab_sg
+- ec2_tag:
+    resource: "{{ gitlab_sg.group_id }}"
+    region: "{{ aws_region }}"
+    state: present
+    tags:
+      Name: "{{ name }}"

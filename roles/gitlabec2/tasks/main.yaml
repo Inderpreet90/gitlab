@@ -1,0 +1,5 @@
+---
+
+- name: Launch GitLab instances
+  include: gitlab_launch.yaml
+

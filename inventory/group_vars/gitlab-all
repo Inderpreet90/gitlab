@@ -1,0 +1,6 @@
+---
+aws_region: us-east-1
+aws_vpc_id: vpc-78ff611f
+
+# Tags
+Server_name: GitLab

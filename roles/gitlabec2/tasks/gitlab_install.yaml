@@ -1,0 +1,26 @@
+---
+- name: Install GitLab Dependencies
+  yum: state=present name={{ item }}
+  with_items:
+    - openssh-server
+    - openssh-clients
+    - curl
+    - policycoreutils
+
+- name: Download GitLab repository
+  get_url: url=https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.rpm.sh dest=~
+
+- name: Install repository 
+  command: /bin/bash ~/script.rpm.sh 
+       
+- name: Install GitLab
+  yum: name=gitlab-ce state=present
+
+- name: Make changes in GitLab Config
+  command: sed -i "0,/external_url/c\external_url 'http:\/\/{{ ansible_nodename }}'" /etc/gitlab/gitlab.rb
+  args:
+    warn: no
+
+- name: Now re-configure GitLab
+  command: /usr/bin/gitlab-ctl reconfigure
+

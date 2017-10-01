@@ -1,6 +1,0 @@
----
-  - hosts: gitlabec2
-    connection: local
-    gather_facts: False
-    roles:
-      - gitlabec2

@@ -1,5 +1,6 @@
 ---
-- ec2:
+- name: Launch instance
+  ec2:
     region: "{{ aws_region }}"
     key_name: "{{ ec2_key_name }}"
     instance_type: "{{ ec2_instance_type }}"
@@ -8,6 +9,7 @@
     vpc_subnet_id: "{{ ec2_subnet_id }}"
     assign_public_ip: no 
     group: "{{ ec2_group }}"
+    volumes: "{{ ec2_root_volume }}"
     instance_tags: 
       Name: "{{ Server_name }}"
   register: ec2

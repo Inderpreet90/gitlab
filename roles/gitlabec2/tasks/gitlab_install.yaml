@@ -16,11 +16,30 @@
 - name: Install GitLab
   yum: name=gitlab-ce state=present
 
-- name: Make changes in GitLab Config
-  command: sed -i "0,/external_url/c\external_url 'http:\/\/{{ ansible_nodename }}'" /etc/gitlab/gitlab.rb
-  args:
-    warn: no
+- name: Copy SSL certificate
+  copy:
+    src: roles/gitlabec2/files/selfsigned.pem
+    dest: /etc/pki/tls/certs/selfsigned.pem
 
-- name: Now re-configure GitLab
+- name: Make changes in GitLab Config
+  replace:
+    dest: /etc/gitlab/gitlab.rb
+    regexp: "^external_url.*"
+    replace: "external_url 'https://{{ item.dns_name }}'"
+  with_items:
+    - "{{ ec2.instances }}"
+- lineinfile:
+    dest: /etc/gitlab/gitlab.rb
+    line: "{{ item }}"
+    state: present
+  with_items:
+    - nginx['redirect_http_to_https'] = true
+    - nginx['ssl_certificate'] = "/etc/pki/tls/certs/selfsigned.pem"
+    - nginx['ssl_certificate_key'] = "/etc/pki/tls/certs/selfsigned.pem"
+
+- name: Re-configure GitLab
   command: /usr/bin/gitlab-ctl reconfigure
+
+- name: Restart GitLab
+  command: /usr/bin/gitlab-ctl restart
 

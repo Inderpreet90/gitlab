@@ -1,0 +1,6 @@
+---
+  - hosts: gitsub
+    connection: local
+    gather_facts: true
+    roles:
+      - gitlabvpc

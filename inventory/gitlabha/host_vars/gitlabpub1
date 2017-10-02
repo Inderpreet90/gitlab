@@ -1,0 +1,6 @@
+---
+sub_cidr: 10.0.0.0/24
+sub_az: us-east-1a
+
+#Tags
+sub_name: gitlabpub1

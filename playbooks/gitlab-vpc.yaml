@@ -1,0 +1,6 @@
+---
+  - hosts: gitvpc
+    connection: local
+    gather_facts: true
+    roles:
+      - gitlabvpc

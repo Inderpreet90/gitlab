@@ -1,0 +1,32 @@
+---
+
+- ec2_vpc_net:
+    name: "{{ vpc_name }}"
+    cidr_block: "{{ vpc_cidr_block }}"
+    region: "{{ aws_region }}"
+    tenancy: "{{ vpc_tenancy }}"
+#  register: awsvpc
+  when: inventory_hostname == "gitlabvpc"
+
+- ec2_vpc_net_facts:
+    aws_region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ vpc_name }}"
+  register: awsvpc
+
+- set_fact:
+    vpcid: "{{ item.id }}"
+  with_items: "{{ awsvpc.vpcs }}"
+
+- ec2_vpc_subnet:
+    state: present
+    vpc_id: "{{ vpcid }}" 
+    cidr: "{{ sub_cidr }}"
+    az: "{{ sub_az }}"
+    region: "{{ aws_region }}"
+    resource_tags:
+      Name: "{{ sub_name }}"
+#  with_items: "{{ awsvpc.vpcs }}"
+  register: vpcsub
+  when: ( inventory_hostname == "gitlabpub1" or inventory_hostname == "gitlabpub2" or inventory_hostname ==  "gitlabpvt1" or inventory_hostname ==  "gitlabpvt2" )
+

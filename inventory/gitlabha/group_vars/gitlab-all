@@ -5,3 +5,4 @@ vpc_name: gitlab
 
 # Tags
 Server_name: GitLab
+route_table: gitlab-public

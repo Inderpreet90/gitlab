@@ -1,0 +1,6 @@
+---
+  - hosts: gitrds
+    connection: local
+    gather_facts: true
+    roles:
+      - gitlabrds

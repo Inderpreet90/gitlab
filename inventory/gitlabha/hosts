@@ -3,12 +3,14 @@ gitec2
 gitsg
 gitvpc
 gitsub
+gitrds
 
 [gitec2]
 gitlabec2
 
 [gitsg]
 gitlabsg
+gitlabsg-common
 
 [gitvpc]
 gitlabvpc
@@ -19,5 +21,7 @@ gitlabpub2
 gitlabpvt1
 gitlabpvt2
 
-
-
+[gitrds]
+gitlabrdssub
+gitlabrds
+gitlabec

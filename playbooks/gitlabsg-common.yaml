@@ -1,0 +1,6 @@
+---
+  - hosts: gitlabsg-common
+    connection: local
+    gather_facts: False
+    roles:
+      - gitlabsg

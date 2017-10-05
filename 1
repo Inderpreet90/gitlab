@@ -86,18 +86,11 @@
   with_items: "{{ sg.security_groups }}"
   when: ( inventory_hostname == "gitlabec" )
 
-- elasticache:
-    name: "{{ rep_group_name }}"
-    state: present
-    engine: "{{ engine }}"
-    cache_engine_version: "{{ cache_version }}"
-    parameter_group: "{{ parameter_group }}"
-    node_type: "{{ cache_node_type }}"
-    num_nodes: 1
-    cache_port: "{{ cache_port }}"
-    cache_subnet_group: "{{ ec_sub }}"
-    security_group_ids:
-      - "{{ sgid }}"
-    zone: us-east-1a
-  when: ( inventory_hostname == "gitlabec" )
 
+
+- name: Create ElasticCache
+  shell: aws elasticache create-replication-group  --replication-group-id "{{ rep_group_name }}" --replication-group-description "redis gitlab rep group"  --num-cache-clusters "{{ node_numbers}}"  --cache-node-type "{{ cache_node_type }}" --cache-parameter-group "{{ parameter_group }}" --engine "{{ engine }}" --engine-version "{{ cache_version }}" --preferred-cache-cluster-a-zs "us-east-1a" "us-east-1b" "us-east-1a"  --cache-subnet-group-name "{{ ec_sub }}" --security-group-ids "{{ sgid }}"
+  ignore_errors: true
+  register: command_result
+  failed_when: "'ReplicationGroupAlreadyExists' not in command_result.stderr or '' in command_result.stderr"
+  when: ( inventory_hostname == "gitlabec" )

@@ -9,3 +9,4 @@ common_sg_name: gitlabsg-common
 # Tags
 Server_name: GitLab
 route_table: gitlab-public
+commonsg_tag_name: GitLabSG-Common

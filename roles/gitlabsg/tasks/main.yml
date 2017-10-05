@@ -43,5 +43,5 @@
     region: "{{ aws_region }}"
     state: present
     tags:
-      Name: "{{ name }}"
+      Name: "{{ commonsg_tag_name }}"
   when: ( inventory_hostname == "gitlabsg-common" )

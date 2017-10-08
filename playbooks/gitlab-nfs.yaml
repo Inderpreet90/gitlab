@@ -1,0 +1,15 @@
+---
+
+- hosts: gitnfs
+  connection: local
+  gather_facts: False
+  roles:
+    - gitnfs
+
+- hosts: nfs
+  gather_facts: true
+  become: true
+  become_user: root
+  tasks:
+    - include: roles/gitnfs/tasks/nfs.yml
+

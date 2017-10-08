@@ -1,0 +1,58 @@
+---
+
+- name: Update yum
+  yum: update_cache=yes state=latest name=*
+
+- name: Create NFS shares
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - /var/opt/gitlab/git-data
+    - /var/opt/gitlab/.ssh
+    - /var/opt/gitlab/gitlab-rails/uploads
+    - /var/opt/gitlab/gitlab-rails/shared
+    - /var/opt/gitlab/gitlab-ci/builds
+
+- name: Start services
+  service:
+    name: "{{ item }}"
+    state: started
+  with_items:
+    - rpcbind
+    - nfs-server
+    - nfs-lock
+    - nfs-idmap
+
+- name: Enable services
+  service:
+    name: "{{ item }}"
+    enabled: yes
+  with_items:
+    - rpcbind
+    - nfs-server
+    - nfs-lock
+    - nfs-idmap
+
+- name: Identify the Instance private IP
+  set_fact: nfsip={{ item.private_ip }}
+  with_items: "{{ ec2.instances }}"
+
+- name: Add exports
+  lineinfile:
+    path: /etc/exports
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - '/var/opt/gitlab/git-data {{ nfsip }}(rw,sync,no_root_squash)'
+    - '/var/opt/gitlab/.ssh {{ nfsip }}(rw,sync,no_root_squash)'
+    - '/var/opt/gitlab/gitlab-rails/uploads {{ nfsip }}(rw,sync,no_root_squash)'
+    - '/var/opt/gitlab/gitlab-rails/shared {{ nfsip }}(rw,sync,no_root_squash)'
+    - '/var/opt/gitlab/gitlab-ci/builds {{ nfsip }}(rw,sync,no_root_squash)'
+
+- name: Restart service
+  service:
+    name: nfs-server
+    state: restarted
+

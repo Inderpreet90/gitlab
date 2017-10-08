@@ -1,0 +1,8 @@
+---
+- import_tasks: nfs-sub.yml
+  when: ( inventory_hostname == 'gitnfssg' )
+
+- import_tasks: nfs-instance.yml
+  when: ( inventory_hostname == 'gitlabnfs' )
+
+

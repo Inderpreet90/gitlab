@@ -4,6 +4,7 @@ gitsg
 gitvpc
 gitsub
 gitrds
+gitnfs
 
 [gitec2]
 gitlabec2
@@ -25,3 +26,7 @@ gitlabpvt2
 gitlabrdssub
 gitlabrds
 gitlabec
+
+[gitnfs]
+gitlabnfs
+gitnfssg

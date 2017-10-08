@@ -10,3 +10,5 @@ common_sg_name: gitlabsg-common
 Server_name: GitLab
 route_table: gitlab-public
 commonsg_tag_name: GitLabSG-Common
+sub_pvt1_name: gitlabpvt1
+sub_pub1_name: gitlabpub1

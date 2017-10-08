@@ -28,7 +28,7 @@
     az: "{{ sub_az }}"
     region: "{{ aws_region }}"
     resource_tags:
-      Name: "{{ sub_name }}"
+      Name: "{{ inventory_hostname }}"
   when: ( inventory_hostname == "gitlabpub1" or inventory_hostname == "gitlabpub2" or inventory_hostname ==  "gitlabpvt1" or inventory_hostname ==  "gitlabpvt2" )
 
 - name: Gather Subnets facts

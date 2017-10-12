@@ -35,7 +35,7 @@
   ec2_vpc_subnet_facts:
     aws_region: "{{ aws_region }}"
     filters:
-      "tag:Name": gitlabpub1
+      "tag:Name": "{{ subn_pub1_name }}"
   register: vpcsub1
   when: ( inventory_hostname == "gitlabpub2" )
 
@@ -43,7 +43,7 @@
   ec2_vpc_subnet_facts:
     aws_region: "{{ aws_region }}"
     filters:
-      "tag:Name": gitlabpub2
+      "tag:Name": "{{ subn_pub2_name }}"
   register: vpcsub2
   when: ( inventory_hostname == "gitlabpub2" )
 
@@ -78,7 +78,7 @@
       - "{{ subid1 }}"
       - "{{ subid2 }}"
     routes:
-      - dest: 0.0.0.0/0
+      - dest: "{{ route_dest }}"
         gateway_id: "{{ igw.gateway_id }}"
   register: public_route_table
   when: ( inventory_hostname == "gitlabpub2" )

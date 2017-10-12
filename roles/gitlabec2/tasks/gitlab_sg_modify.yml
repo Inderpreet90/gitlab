@@ -1,0 +1,55 @@
+---
+
+- name: Gather SGs facts
+  ec2_group_facts:
+    filters:
+     "tag:Name": "{{ gitlab_sg_name }}"
+  register: awssg
+
+- name: Filter the SG ID
+  set_fact:
+    ec2sgid: "{{ item.group_id }}"
+  with_items:
+    - "{{ awssg.security_groups }}"
+
+- name: Gather SGs facts
+  ec2_group_facts:
+    filters:
+     "tag:Name": "{{ commonsg_tag_name }}"
+  register: awssg1
+
+- name: Filter the SG ID
+  set_fact:
+     cmsgid: "{{ item.group_id }}"
+  with_items:
+    - "{{ awssg1.security_groups }}"
+
+- name: Gather VPC facts
+  ec2_vpc_net_facts:
+    aws_region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ vpc_name }}"
+  register: awsvpc
+
+- name: Identify the VPC ID
+  set_fact:
+    vpcid: "{{ item.id }}"
+  with_items: "{{ awsvpc.vpcs }}"
+    
+- ec2_group:
+    name: gitlabsg-common
+    description: "Gitlab Instance Common Security Group"
+    group_id: "{{ cmsgid }}"
+    vpc_id: "{{ vpcid }}"
+    region: "{{ aws_region }}"
+    rules:
+      - proto: tcp
+        from_port: 5432
+        to_port: 5432
+        group_id: "{{ ec2sgid }}"
+      - proto: tcp
+        from_port: 6379
+        to_port: 6379
+        group_id: "{{ ec2sgid }}"
+    
+

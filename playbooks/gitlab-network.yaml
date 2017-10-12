@@ -1,6 +1,0 @@
----
-- include: gitlab-vpc.yaml
-- include: gitlab-sub.yaml
-#- include: gitlabsg-common.yaml
-#- include: gitlab-rds.yaml
-- include: gitlab-nfs.yaml

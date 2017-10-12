@@ -1,48 +1,44 @@
 ---
+
+- ec2_group:
+    name: "{{ inventory_hostname }}"
+    description: "{{ ec2_securitygroup_desc }}"
+    region: "{{ aws_region }}"
+    rules: "{{ ec2_securitygroup_rules }}"
+    vpc_id: vpc-003bc378
+  register: gitlab_sg
+  when: ( inventory_hostname == "gitlabsg" )
+- ec2_tag:
+    resource: "{{ gitlab_sg.group_id }}"
+    region: "{{ aws_region }}"
+    state: present
+    tags:
+      Name: "{{ name }}"
+  when: ( inventory_hostname == "gitlabsg" )
+
 - name: Gather VPC facts
   ec2_vpc_net_facts:
     aws_region: "{{ aws_region }}"
     filters:
       "tag:Name": "{{ vpc_name }}"
   register: awsvpc
-  when: ( inventory_hostname == "gitlabsg-common" or inventory_hostname == "gitlabsg" )
+  when: ( inventory_hostname == "gitlabsg-common" )
 
 - name: Identify the VPC ID
   set_fact:
     vpcid: "{{ item.id }}"
   with_items: "{{ awsvpc.vpcs }}"
-  when: ( inventory_hostname == "gitlabsg-common" or inventory_hostname == "gitlabsg" )
+  when: ( inventory_hostname == "gitlabsg-common" )
 
-- name: Create SG for Gitlab instance
-  ec2_group:
-    name: "{{ inventory_hostname }}"
+- ec2_group:
+    name: "{{ common_sg_name }}"
     description: "{{ ec2_securitygroup_desc }}"
     region: "{{ aws_region }}"
     rules: "{{ ec2_securitygroup_rules }}"
     vpc_id: "{{ vpcid }}"
   register: gitlab_sg
-  when: ( inventory_hostname == "gitlabsg" )
-
-- ec2_tag:
-    resource: "{{ gitlab_sg.group_id }}"
-    region: "{{ aws_region }}"
-    state: present
-    tags:
-      Name: "{{ gitlab_sg_name }}"
-  when: ( inventory_hostname == "gitlabsg" )
-
-- name: Create Gitlab common SG
-  ec2_group:
-    name: "{{ common_sg_name }}"
-    description: "{{ ec2_securitygroup_desc }}"
-    region: "{{ aws_region }}"
-    rules: "{{ ec2_securitygroup_rules }}"
-    vpc_id: "{{ vpcid  }}"
-  register: gitlab_sg
   when: ( inventory_hostname == "gitlabsg-common" )
-
-- name: Tag the common SG
-  ec2_tag:
+- ec2_tag:
     resource: "{{ gitlab_sg.group_id }}"
     region: "{{ aws_region }}"
     state: present

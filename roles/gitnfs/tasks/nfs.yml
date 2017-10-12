@@ -1,8 +1,5 @@
 ---
 
-- name: Update yum
-  yum: update_cache=yes state=latest name=*
-
 - name: Create NFS shares
   file:
     path: "{{ item }}"

@@ -1,6 +1,0 @@
----
-  - hosts: gitnfssg
-    connection: local
-    gather_facts: False
-    roles:
-      - gitlabnfs

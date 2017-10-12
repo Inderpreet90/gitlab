@@ -13,5 +13,3 @@ ec2_securitygroup_rules:
     from_port: 443
     to_port: 443
     cidr_ip: 0.0.0.0/0
-#Tags
-name: GitLabNFS

@@ -10,6 +10,9 @@
   gather_facts: true
   become: true
   become_user: root
+  pre_tasks:
+    - name: disable fingerprint checking that may be enabled; when enabled, causes ssh issues
+      command: authconfig --disablefingerprint --update
   tasks:
     - include: roles/gitnfs/tasks/nfs.yml
 

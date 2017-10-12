@@ -1,14 +1,22 @@
 ---
 aws_region: us-east-1
-aws_vpc_id: vpc-78ff611f
+ec2_instance_profile_name: CloudDeskCrossAccountRole
+ec2_image: ami-96a818fe #CentOS-7
 vpc_name: gitlab
 rds_sub: gitlab-rds
 ec_sub: gitlab-cache
 common_sg_name: gitlabsg-common
+ansible_ssh_user: centos
+rds_instance_name: gitlabrds
 
 # Tags
 Server_name: GitLab
 route_table: gitlab-public
 commonsg_tag_name: GitLabSG-Common
-sub_pvt1_name: gitlabpvt1
-sub_pub1_name: gitlabpub1
+gitnfs_name: GitNFS
+gitlab_sg_name: GitLabSG
+nfs_sg_name: GitLabNFS
+subn_pvt1_name: gitlabpvt1
+subn_pvt2_name: gitlabpvt2
+subn_pub1_name: gitlabpub1
+subn_pub2_name: gitlabpub2

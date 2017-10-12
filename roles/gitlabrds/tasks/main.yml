@@ -4,7 +4,7 @@
   ec2_vpc_subnet_facts:
     aws_region: "{{ aws_region }}"
     filters:
-      "tag:Name": gitlabpvt1
+      "tag:Name": "{{ subn_pvt1_name }}"
   register: vpcsub1
   when: ( inventory_hostname == "gitlabrdssub"  or inventory_hostname == "gitlabec" )
 
@@ -12,7 +12,7 @@
   ec2_vpc_subnet_facts:
     aws_region: "{{ aws_region }}"
     filters:
-      "tag:Name": gitlabpvt2
+      "tag:Name": "{{ subn_pvt2_name }}"
   register: vpcsub2
   when: ( inventory_hostname == "gitlabrdssub" or inventory_hostname == "gitlabec" )
 
@@ -39,6 +39,20 @@
       - "{{ subid2 }}"
   when: ( inventory_hostname == "gitlabrdssub" )
 
+- name: Gather Common SG facts
+  ec2_group_facts:
+    aws_region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ commonsg_tag_name }}"
+  register: sg
+  when: ( inventory_hostname == "gitlabec" or inventory_hostname == "gitlabrds" )
+
+- name: Identify the common SG ID
+  set_fact:
+    sgid: "{{ item.group_id }}"
+  with_items: "{{ sg.security_groups }}"
+  when: ( inventory_hostname == "gitlabec" or inventory_hostname == "gitlabrds" )
+
 - name: Create Postgres RDS
   rds:
     command: create
@@ -47,6 +61,7 @@
     db_engine: "{{ DB_Engine }}"
     db_name: "{{ DB_name }}"
     port: "{{ DB_port }}"
+    vpc_security_groups: "{{ sgid }}"
     engine_version: "{{ engine_version }}"
     size: "{{ DB_size }}"
     instance_type: "{{ DB_instance_type }}"
@@ -70,20 +85,6 @@
     subnets:
       - "{{ subid1 }}"
       - "{{ subid2 }}"
-  when: ( inventory_hostname == "gitlabec" )
-
-- ec2_group_facts:
-    filters:
-    aws_region: "{{ aws_region }}"
-    filters:
-      "tag:Name": "{{ commonsg_tag_name }}"
-  register: sg
-  when: ( inventory_hostname == "gitlabec" )
-
-- name: Identify the SG ID
-  set_fact:
-    sgid: "{{ item.group_id }}"
-  with_items: "{{ sg.security_groups }}"
   when: ( inventory_hostname == "gitlabec" )
 
 - elasticache:

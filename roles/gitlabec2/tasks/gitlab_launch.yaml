@@ -4,6 +4,7 @@
     region: "{{ aws_region }}"
     key_name: "{{ ec2_key_name }}"
     instance_type: "{{ ec2_instance_type }}"
+    instance_profile_name: "{{ ec2_instance_profile_name }}"
     image: "{{ ec2_image }}"
     count: "{{ ec2_exact_count }}"
     vpc_subnet_id: "{{ ec2_subnet_id }}"

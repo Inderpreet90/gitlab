@@ -5,10 +5,15 @@ gitvpc
 gitsub
 gitrds
 gitnfs
+gitelb
 
 [gitec2]
 gitlabec2
-34.204.89.129
+gitlabAMI
+
+[gitelb]
+gitlabelb
+gitlabelbsg
 
 [gitsg]
 gitlabsg

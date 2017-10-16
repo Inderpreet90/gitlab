@@ -1,0 +1,6 @@
+---
+- hosts: gitlabAMI
+  connection: local
+  gather_facts: False
+  roles:
+    - gitlabami

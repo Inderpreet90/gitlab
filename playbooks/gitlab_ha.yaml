@@ -15,3 +15,6 @@
   become_user: root
   tasks:
     - include: ./roles/gitlabec2/tasks/gitlab_install.yaml
+
+- include: gitlabami.yaml
+- include: gitlabelb.yaml

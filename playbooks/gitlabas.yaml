@@ -1,0 +1,6 @@
+---
+- hosts: gitlabas
+  connection: local
+  gather_facts: false
+  roles:
+    - gitlabas

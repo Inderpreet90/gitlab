@@ -6,6 +6,7 @@ gitsub
 gitrds
 gitnfs
 gitelb
+gitas
 
 [gitec2]
 gitlabec2
@@ -36,3 +37,6 @@ gitlabec
 [gitnfs]
 gitlabnfs
 gitnfssg
+
+[gitas]
+gitlabas

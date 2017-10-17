@@ -2,6 +2,8 @@
 aws_account_id: 162382836334
 gitlab_ssl: gitlab_ssl
 aws_region: us-east-1
+ec2_instance_type: t2.medium
+ec2_key_name: aws
 ec2_instance_profile_name: CloudDeskCrossAccountRole
 ec2_image: ami-96a818fe #CentOS-7
 vpc_name: gitlab
@@ -12,7 +14,9 @@ ansible_ssh_user: centos
 rds_instance_name: gitlabrds
 ansible_ssh_private_key_file: /home/inder/Downloads/aws.pem
 gitlab_elb_name: GitlabELB
-
+gitlab_launch_config: GitlabLC
+gitlab_as_name: GitlabASGroup
+gitlab_ami: gitlabAMI
 # Tags
 Server_name: GitLab
 route_table: gitlab-public

@@ -3,6 +3,7 @@ aws_account_id: 162382836334
 gitlab_ssl: gitlab_ssl
 aws_region: us-east-1
 ec2_instance_type: t2.medium
+nfs_instance_type: t2.medium
 ec2_key_name: aws
 ec2_instance_profile_name: CloudDeskCrossAccountRole
 ec2_image: ami-96a818fe #CentOS-7

@@ -1,0 +1,39 @@
+---
+aws_account_id: 162382836334
+gitlab_ssl: gitlab_ssl
+aws_region: us-east-1
+ec2_instance_type: t2.medium
+nfs_instance_type: t2.medium
+ec2_key_name: aws
+ec2_instance_profile_name: CloudDeskCrossAccountRole
+ec2_image: ami-96a818fe #CentOS-7
+vpc_name: gitlab
+rds_sub: gitlab-rds
+ec_sub: gitlab-cache
+common_sg_name: gitlabsg-common
+ansible_ssh_user: centos
+rds_instance_name: gitlabrds
+ansible_ssh_private_key_file: /home/inder/Downloads/aws.pem
+gitlab_elb_name: GitlabELB
+gitlab_launch_config: GitlabLC
+gitlab_as_name: GitlabASGroup
+gitlab_ami: gitlabAMI
+DB_username: gitlab
+DB_password: securepass
+DB_port: 5432
+DB_name: gitlabhq_production
+
+
+# Tags
+Server_name: GitLab
+route_table: gitlab-public
+commonsg_tag_name: GitLabSG-Common
+gitnfs_name: GitNFS
+gitlab_sg_name: GitLabSG
+nfs_sg_name: GitLabNFS
+subn_pvt1_name: gitlabpvt1
+subn_pvt2_name: gitlabpvt2
+subn_pub1_name: gitlabpub1
+subn_pub2_name: gitlabpub2
+githa_ami_name: GitlabAMI
+gitlabelb_sg_name: GitlabELB

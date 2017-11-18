@@ -1,0 +1,10 @@
+---
+env: production
+app: gitlab
+DB_Engine: postgres
+DB_size: 80
+DB_instance_type: db.t2.large
+multi_zone: yes
+license_model: postgresql-license
+engine_version: 9.4.7 
+publicly_accessible: no

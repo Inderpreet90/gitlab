@@ -21,25 +21,58 @@
     src: roles/gitlabec2/files/selfsigned.pem
     dest: /etc/pki/tls/certs/selfsigned.pem
 
-- name: Make changes in GitLab Config
-  replace:
-    dest: /etc/gitlab/gitlab.rb
-    regexp: "^external_url.*"
-    replace: "external_url 'https://{{ item.dns_name }}'"
+- name: Fetch NFS instance facts
+  ec2_remote_facts:
+    region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ gitnfs_name }}"
+  register: nfsec2
+
+- name: Fetch the private ip of NFS instance
+  set_fact:
+    nfsip: "{{ item.private_ip_address }}"
   with_items:
-    - "{{ ec2.instances }}"
-- lineinfile:
-    dest: /etc/gitlab/gitlab.rb
-    line: "{{ item }}"
+    - "{{ nfsec2.instances }}"
+
+- name: Add NFS endpoints in fstab
+  lineinfile:
+    dest: /etc/fstab
+    line: "{{ nfsip }}:{{ item }}"
     state: present
   with_items:
-    - nginx['redirect_http_to_https'] = true
-    - nginx['ssl_certificate'] = "/etc/pki/tls/certs/selfsigned.pem"
-    - nginx['ssl_certificate_key'] = "/etc/pki/tls/certs/selfsigned.pem"
+    - "/var/opt/gitlab/git-data /var/opt/gitlab/git-data nfs4 defaults,soft,rsize=1048576,wsize=1048576,noatime,nobootwait,lookupcache=positive 0 2"
+
+    - "/var/opt/gitlab/.ssh /var/opt/gitlab/.ssh nfs4 defaults,soft,rsize=1048576,wsize=1048576,noatime,nobootwait,lookupcache=positive 0 2"
+
+    - "/var/opt/gitlab/gitlab-rails/uploads /var/opt/gitlab/gitlab-rails/uploads nfs4 defaults,soft,rsize=1048576,wsize=1048576,noatime,nobootwait,lookupcache=positive 0 2"
+
+    - "/var/opt/gitlab/gitlab-rails/shared /var/opt/gitlab/gitlab-rails/shared nfs4 defaults,soft,rsize=1048576,wsize=1048576,noatime,nobootwait,lookupcache=positive 0 2"
+
+    - "/var/opt/gitlab/gitlab-ci/builds /var/opt/gitlab/gitlab-ci/builds nfs4 defaults,soft,rsize=1048576,wsize=1048576,noatime,nobootwait,lookupcache=positive 0 2"
+
+- name: Fetch RDS facts
+  rds:
+    region: "{{ aws_region }}"
+    command: facts
+    instance_name: "{{ rds_instance_name }}"
+  register: rds_facts
+
+- name: Get RDS endpoint
+  set_fact:
+    rdsendp: "{{ item.endpoint }}"
+  with_items:
+    - "{{ rds_facts.instance }}"
+
+- name: Update gitlab config
+  template:
+    src: roles/gitlabec2/templates/gitlab.rb.j2
+    dest: /etc/gitlab/gitlab.rb
 
 - name: Re-configure GitLab
   command: /usr/bin/gitlab-ctl reconfigure
 
 - name: Restart GitLab
-  command: /usr/bin/gitlab-ctl restart
+  shell: gitlab-ctl restart
+
+
 

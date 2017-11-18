@@ -3,3 +3,6 @@
 - name: Launch GitLab instances
   include: gitlab_launch.yaml
 
+- name: Modify the SGs of RDS and Redis
+  include: gitlab_sg_modify.yml
+

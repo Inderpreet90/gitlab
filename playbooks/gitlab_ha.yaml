@@ -1,7 +1,11 @@
 ---
 
+- include: gitlab-vpc.yaml
+- include: gitlab-sub.yaml
+- include: gitlabsg-common.yaml
+- include: gitlab-rds.yaml
+- include: gitlab-nfs.yaml
 - include: gitlab-sg.yaml
-
 - include: gitlab-ec2.yaml
 
 - hosts: launched
@@ -12,3 +16,6 @@
   tasks:
     - include: ./roles/gitlabec2/tasks/gitlab_install.yaml
 
+- include: gitlabami.yaml
+- include: gitlabelb.yaml
+- include: gitlabas.yaml

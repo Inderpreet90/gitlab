@@ -1,11 +1,6 @@
 ---
-ec2_instance_type: t2.medium
-ec2_instance_profile_name: CloudDeskCrossAccountRole
 ec2_exact_count: 1
-ec2_image: ami-96a818fe #CentOS-7
-ec2_key_name: aws
 ec2_ebs_optimized: true
-ec2_subnet_id: subnet-112e133b
 ec2_root_volume:
   - device_name: /dev/sda1
     volume_type: gp2

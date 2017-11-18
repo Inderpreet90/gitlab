@@ -1,0 +1,90 @@
+---
+- name: Get gitlab AMI details
+  ec2_ami_find:
+    name: "{{ gitlab_ami }}"
+    region: "{{ aws_region }}"
+    owner: self
+  register: gitami
+
+- name: Gather Gitlab SG facts
+  ec2_group_facts:
+    aws_region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ gitlab_sg_name }}"
+  register: sg
+
+- name: Identify the SG ID
+  set_fact:
+    sgid: "{{ item.group_id }}"
+  with_items: "{{ sg.security_groups }}"
+
+- name: create launch config
+  ec2_lc:
+    name: "{{ gitlab_launch_config }}"
+    image_id: "{{ item.ami_id }}" 
+    key_name: "{{ ec2_key_name }}"
+    region: "{{ aws_region }}"
+    security_groups: "{{ sgid }}"
+    instance_type: "{{ ec2_instance_type }}"
+    assign_public_ip: no
+  with_items: "{{ gitami.results }}"
+
+- name: Gather Subnet1 facts
+  ec2_vpc_subnet_facts:
+    aws_region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ subn_pvt1_name }}"
+  register: vpcsub1
+
+- name: Identify the Subnet ID
+  set_fact:
+    subid1: "{{ item.id }}"
+  with_items: "{{ vpcsub1.subnets }}"
+
+- name: Gather Subnet2 facts
+  ec2_vpc_subnet_facts:
+    aws_region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ subn_pvt2_name }}"
+  register: vpcsub2
+
+- name: Identify the Subnet ID
+  set_fact:
+    subid2: "{{ item.id }}"
+  with_items: "{{ vpcsub2.subnets }}"
+
+- name: Fetch instance details
+  ec2_remote_facts:
+    region: "{{ aws_region }}"
+    filters:
+      instance-state-name: running
+      "tag:Name": "{{ Server_name }}"
+  register: gitec2
+
+- name: Filter instance ID
+  set_fact:
+    ec2id: "{{ item.id }}"
+  with_items: "{{ gitec2.instances }}"
+
+- name: Create AS group
+  ec2_asg:
+    name: "{{ gitlab_as_name }}"
+    launch_config_name: "{{ gitlab_launch_config }}"
+    health_check_period: 60
+    health_check_type: ELB
+    load_balancers: "{{ gitlab_elb_name }}"
+    replace_all_instances: no
+    min_size: 2
+    max_size: 4
+    desired_capacity: 2
+    region: "{{ aws_region }}"
+    vpc_zone_identifier: [ '{{ subid1 }}', '{{ subid2 }}' ]
+    tags:
+      - Name: "{{ Server_name }}"
+        propagate_at_launch: yes
+
+- name: Terminate existing instance that was used to create AMI
+  ec2:
+    region: "{{ aws_region }}"
+    state: "absent"
+    instance_ids: "{{ ec2id }}"

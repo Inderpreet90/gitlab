@@ -1,0 +1,4 @@
+---
+sub_cidr: 10.0.3.0/24
+sub_az: us-east-1b
+

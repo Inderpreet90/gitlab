@@ -1,0 +1,23 @@
+---
+- name: Fetch instance details
+  ec2_remote_facts:
+    region: "{{ aws_region }}"
+    filters:
+      instance-state-name: running
+      "tag:Name": "{{ Server_name }}"
+  register: gitec2
+
+- name: Filter instance ID
+  set_fact:
+    ec2id: "{{ item.id }}"
+  with_items: "{{ gitec2.instances }}"
+    
+- name: Create AMI from Gitlab instance
+  ec2_ami:
+    region: "{{ aws_region }}"
+    instance_id: "{{ ec2id }}"
+    wait: no
+    name: "{{ inventory_hostname }}"
+    tags:
+      Name: "{{ githa_ami_name }}"
+  register: image

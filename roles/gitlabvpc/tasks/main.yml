@@ -1,0 +1,84 @@
+---
+
+- name: Create a new VPC
+  ec2_vpc_net:
+    name: "{{ vpc_name }}"
+    cidr_block: "{{ vpc_cidr_block }}"
+    region: "{{ aws_region }}"
+    tenancy: "{{ vpc_tenancy }}"
+  when: inventory_hostname == "gitlabvpc"
+
+- name: Gather VPC facts
+  ec2_vpc_net_facts:
+    aws_region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ vpc_name }}"
+  register: awsvpc
+
+- name: Identify the VPC ID
+  set_fact:
+    vpcid: "{{ item.id }}"
+  with_items: "{{ awsvpc.vpcs }}"
+
+- name: Create new subnets
+  ec2_vpc_subnet:
+    state: present
+    vpc_id: "{{ vpcid }}" 
+    cidr: "{{ sub_cidr }}"
+    az: "{{ sub_az }}"
+    region: "{{ aws_region }}"
+    resource_tags:
+      Name: "{{ inventory_hostname }}"
+  when: ( inventory_hostname == "gitlabpub1" or inventory_hostname == "gitlabpub2" or inventory_hostname ==  "gitlabpvt1" or inventory_hostname ==  "gitlabpvt2" )
+
+- name: Gather Subnets facts
+  ec2_vpc_subnet_facts:
+    aws_region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ subn_pub1_name }}"
+  register: vpcsub1
+  when: ( inventory_hostname == "gitlabpub2" )
+
+- name: Gather Subnets facts
+  ec2_vpc_subnet_facts:
+    aws_region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ subn_pub2_name }}"
+  register: vpcsub2
+  when: ( inventory_hostname == "gitlabpub2" )
+
+
+- name: Identify the Pub1 Subnet ID
+  set_fact:
+    subid1: "{{ item.id }}"
+  with_items: "{{ vpcsub1.subnets }}"
+  when: ( inventory_hostname == "gitlabpub2" )
+
+- name: Identify the Pub2 Subnet ID
+  set_fact:
+    subid2: "{{ item.id }}"
+  with_items: "{{ vpcsub2.subnets }}"
+  when: ( inventory_hostname == "gitlabpub2" )
+
+- name: Create an internet gateway
+  ec2_vpc_igw:
+    region: "{{ aws_region }}"
+    vpc_id: "{{ vpcid }}"
+    state: present
+  register: igw
+  when: ( inventory_hostname == "gitlabpub2" )
+  
+- name: Set up public subnet route table
+  ec2_vpc_route_table:
+    vpc_id: "{{ vpcid }}"
+    region: "{{ aws_region }}"
+    tags:
+      Name: "{{ route_table }}"
+    subnets:
+      - "{{ subid1 }}"
+      - "{{ subid2 }}"
+    routes:
+      - dest: "{{ route_dest }}"
+        gateway_id: "{{ igw.gateway_id }}"
+  register: public_route_table
+  when: ( inventory_hostname == "gitlabpub2" )

@@ -1,0 +1,13 @@
+---
+ec2_exact_count: 1
+ec2_ebs_optimized: true
+ec2_root_volume:
+  - device_name: /dev/sda1
+    volume_type: gp2
+    volume_size: 20
+    delete_on_termination: true
+ec2_group: gitlabsg
+
+# Remember to change this to your live Domain name which you will use for your git server.
+gitlab_dns: git.mydns.com
+

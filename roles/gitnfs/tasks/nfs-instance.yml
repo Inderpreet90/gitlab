@@ -1,4 +1,5 @@
 ---
+
 - name: Gather Subnets facts
   ec2_vpc_subnet_facts:
     aws_region: "{{ aws_region }}"
@@ -10,12 +11,12 @@
   set_fact:
     subid: "{{ item.id }}"
   with_items: "{{ vpcsub.subnets }}"
-
-- name: Launch Gitlab instance
+  
+- name: Launch NFS instance
   ec2:
     region: "{{ aws_region }}"
     key_name: "{{ ec2_key_name }}"
-    instance_type: "{{ ec2_instance_type }}"
+    instance_type: "{{ nfs_instance_type }}"
     instance_profile_name: "{{ ec2_instance_profile_name }}"
     image: "{{ ec2_image }}"
     count: "{{ ec2_exact_count }}"
@@ -24,13 +25,8 @@
     group: "{{ ec2_group }}"
     volumes: "{{ ec2_root_volume }}"
     instance_tags: 
-      Name: "{{ Server_name }}"
+      Name: "{{ gitnfs_name }}"
   register: ec2
-
-- name: Add new host to our inventory.
-  add_host: hostname={{inventory_hostname}} groupname=launched ansible_ssh_host={{ item.public_ip }} ansible_ssh_user=centos become=true become_user=root ansible_ssh_private_key_file={{ ansible_ssh_private_key_file }}
-  with_items: "{{ ec2.instances }}"
-  register: newec2
 
 - name: Wait for Instance
   wait_for:
@@ -39,5 +35,14 @@
     delay: 60
     timeout: 320
     state: started
+  with_items: "{{ ec2.instances }}"
+
+- name: Add new host to our inventory.
+  add_host: 
+    hostname: "{{ inventory_hostname }}" 
+    groupname: nfs 
+    ansible_ssh_host: "{{ item.public_ip }}"
+    ansible_ssh_user: "{{ ansible_ssh_user }}"
+    ansible_ssh_private_key_file: "{{ ansible_ssh_private_key_file }}"
   with_items: "{{ ec2.instances }}"
 

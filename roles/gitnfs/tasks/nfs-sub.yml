@@ -1,0 +1,30 @@
+---
+
+- name: Gather VPC facts
+  ec2_vpc_net_facts:
+    aws_region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ vpc_name }}"
+  register: awsvpc
+
+- name: Identify the VPC ID
+  set_fact: vpcid={{ item.id }}
+  with_items: "{{ awsvpc.vpcs }}"
+ 
+- name: Create SG
+  ec2_group:
+    name: "{{ inventory_hostname }}"
+    description: "{{ ec2_securitygroup_desc }}"
+    region: "{{ aws_region }}"
+    rules: "{{ ec2_securitygroup_rules }}"
+    vpc_id: "{{ vpcid }}"
+  register: gitlab_sg
+
+- name: Tag the SG
+  ec2_tag:
+    resource: "{{ gitlab_sg.group_id }}"
+    region: "{{ aws_region }}"
+    state: present
+    tags:
+      Name: "{{ nfs_sg_name }}"
+

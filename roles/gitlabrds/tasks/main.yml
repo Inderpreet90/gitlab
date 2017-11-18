@@ -1,0 +1,104 @@
+---
+
+- name: Gather Subnets facts
+  ec2_vpc_subnet_facts:
+    aws_region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ subn_pvt1_name }}"
+  register: vpcsub1
+  when: ( inventory_hostname == "gitlabrdssub"  or inventory_hostname == "gitlabec" )
+
+- name: Gather Subnets facts
+  ec2_vpc_subnet_facts:
+    aws_region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ subn_pvt2_name }}"
+  register: vpcsub2
+  when: ( inventory_hostname == "gitlabrdssub" or inventory_hostname == "gitlabec" )
+
+- name: Identify the Pvt1 Subnet ID
+  set_fact:
+    subid1: "{{ item.id }}"
+  with_items: "{{ vpcsub1.subnets }}"
+  when: ( inventory_hostname == "gitlabrdssub" or inventory_hostname == "gitlabec" )
+
+- name: Identify the Pub2 Subnet ID
+  set_fact:
+    subid2: "{{ item.id }}"
+  with_items: "{{ vpcsub2.subnets }}"
+  when: ( inventory_hostname == "gitlabrdssub" or inventory_hostname == "gitlabec" )
+
+- name: Create a RDS subnet group
+  rds_subnet_group:
+    region: "{{ aws_region }}"
+    state: present
+    name: "{{ rds_sub }}"
+    description: GitLab RDS Subnet Group
+    subnets:
+      - "{{ subid1 }}"
+      - "{{ subid2 }}"
+  when: ( inventory_hostname == "gitlabrdssub" )
+
+- name: Gather Common SG facts
+  ec2_group_facts:
+    aws_region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ commonsg_tag_name }}"
+  register: sg
+  when: ( inventory_hostname == "gitlabec" or inventory_hostname == "gitlabrds" )
+
+- name: Identify the common SG ID
+  set_fact:
+    sgid: "{{ item.group_id }}"
+  with_items: "{{ sg.security_groups }}"
+  when: ( inventory_hostname == "gitlabec" or inventory_hostname == "gitlabrds" )
+
+- name: Create Postgres RDS
+  rds:
+    command: create
+    aws_region: "{{ aws_region }}"
+    instance_name: "{{ rds_instance_name }}"
+    db_engine: "{{ DB_Engine }}"
+    db_name: "{{ DB_name }}"
+    port: "{{ DB_port }}"
+    vpc_security_groups: "{{ sgid }}"
+    engine_version: "{{ engine_version }}"
+    size: "{{ DB_size }}"
+    instance_type: "{{ DB_instance_type }}"
+    multi_zone: "{{ multi_zone }}"
+    license_model: "{{ license_model }}"
+    subnet: "{{ rds_sub }}"
+    publicly_accessible: "{{ publicly_accessible }}"
+    username: "{{ DB_username }}"
+    password: "{{ DB_password }}"
+    tags:
+      Environment: "{{env }}"
+      Application: "{{ app }}"
+  when: ( inventory_hostname == "gitlabrds" ) 
+
+- name: Create EC subnet group
+  elasticache_subnet_group:
+    aws_region: "{{ aws_region }}" 
+    state: present
+    name: "{{ ec_sub }}"
+    description: Gitlab cache subnet group
+    subnets:
+      - "{{ subid1 }}"
+      - "{{ subid2 }}"
+  when: ( inventory_hostname == "gitlabec" )
+
+- elasticache:
+    name: "{{ rep_group_name }}"
+    state: present
+    engine: "{{ engine }}"
+    cache_engine_version: "{{ cache_version }}"
+    parameter_group: "{{ parameter_group }}"
+    node_type: "{{ cache_node_type }}"
+    num_nodes: 1
+    cache_port: "{{ cache_port }}"
+    cache_subnet_group: "{{ ec_sub }}"
+    security_group_ids:
+      - "{{ sgid }}"
+    zone: us-east-1a
+  when: ( inventory_hostname == "gitlabec" )
+

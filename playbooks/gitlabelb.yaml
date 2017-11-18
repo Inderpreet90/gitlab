@@ -1,0 +1,6 @@
+---
+- hosts: gitelb
+  connection: local
+  gather_facts: False
+  roles:
+    - gitlabelb

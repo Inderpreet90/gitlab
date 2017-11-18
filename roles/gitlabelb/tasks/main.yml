@@ -1,0 +1,135 @@
+---
+- name: Upload SSL cert to AWS
+  iam_cert:
+    aws_region: "{{ aws_region }}"
+    name: "{{ gitlab_ssl }}"
+    state: present
+    cert: "{{ lookup('file', '/home/inder/ssl/selfsigned.crt') }}"
+    key: "{{ lookup('file', '/home/inder/ssl/selfsigned.key') }}"
+  when: ( inventory_hostname == "gitlabelb" )
+
+- name: Gather VPC facts
+  ec2_vpc_net_facts:
+    aws_region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ vpc_name }}"
+  register: awsvpc
+  when: ( inventory_hostname == "gitlabelbsg" )
+
+- name: Identify the VPC ID
+  set_fact:
+    vpcid: "{{ item.id }}"
+  with_items: "{{ awsvpc.vpcs }}"
+  when: ( inventory_hostname == "gitlabelbsg" )
+
+- name: Create SG for Gitlab ELB
+  ec2_group:
+    name: "{{ inventory_hostname }}"
+    description: "{{ ec2_securitygroup_desc }}"
+    region: "{{ aws_region }}"
+    rules: "{{ ec2_securitygroup_rules }}"
+    vpc_id: "{{ vpcid }}"
+  register: gitlab_sg
+  when: ( inventory_hostname == "gitlabelbsg" )
+
+- ec2_tag:
+    resource: "{{ gitlab_sg.group_id }}"
+    region: "{{ aws_region }}"
+    state: present
+    tags:
+      Name: "{{ gitlabelb_sg_name }}"
+  when: ( inventory_hostname == "gitlabelbsg" )
+
+- name: Gather SG facts
+  ec2_group_facts:
+    aws_region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ gitlabelb_sg_name }}"
+  register: sg
+  when: ( inventory_hostname == "gitlabelb" )
+
+- name: Identify the SG ID
+  set_fact:
+    sgid: "{{ item.group_id }}"
+  with_items: "{{ sg.security_groups }}"
+  when: ( inventory_hostname == "gitlabelb" )
+
+- name: Gather Subnets facts
+  ec2_vpc_subnet_facts:
+    aws_region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ subn_pub1_name }}"
+  register: vpcsub1
+  when: ( inventory_hostname == "gitlabelb" )
+
+- name: Identify the Subnet ID
+  set_fact:
+    subid1: "{{ item.id }}"
+  with_items: "{{ vpcsub1.subnets }}"
+  when: ( inventory_hostname == "gitlabelb" )
+
+- name: Gather Subnets facts
+  ec2_vpc_subnet_facts:
+    aws_region: "{{ aws_region }}"
+    filters:
+      "tag:Name": "{{ subn_pub2_name }}"
+  register: vpcsub2
+  when: ( inventory_hostname == "gitlabelb" )
+
+- name: Identify the Subnet ID
+  set_fact:
+    subid2: "{{ item.id }}"
+  with_items: "{{ vpcsub2.subnets }}"
+  when: ( inventory_hostname == "gitlabelb" )
+
+- name: Create ELB for Gitlab
+  ec2_elb_lb:
+    state: present
+    name: "{{ gitlab_elb_name }}"
+    security_group_ids: "{{ sgid }}"
+    region: "{{ aws_region }}"
+    subnets: 
+      - "{{ subid1 }}"
+      - "{{ subid2 }}"
+    purge_subnets: yes
+    listeners:
+      - protocol: http
+        load_balancer_port: 80
+        instance_port: 80
+      - protocol: https
+        load_balancer_port: 443
+        instance_protocol: https # optional, defaults to value of protocol setting
+        instance_port: 443
+        # ssl certificate required for https or ssl
+        ssl_certificate_id: "arn:aws:iam::{{ aws_account_id }}:server-certificate/{{ gitlab_ssl }}"
+    stickiness:
+      type: loadbalancer
+      enabled: yes
+      expiration: 300
+  register: gitelb
+  when: ( inventory_hostname == "gitlabelb" )
+
+- name: Fetch instance details
+  ec2_remote_facts:
+    region: "{{ aws_region }}"
+    filters:
+      instance-state-name: running
+      "tag:Name": "{{ Server_name }}"
+  register: gitec2
+  when: ( inventory_hostname == "gitlabelb" )
+
+- name: Filter instance ID
+  set_fact:
+    ec2id: "{{ item.id }}"
+  with_items: "{{ gitec2.instances }}"
+  when: ( inventory_hostname == "gitlabelb" )
+
+- name: Add instance to ELB
+  ec2_elb:
+    region: "{{ aws_region }}"
+    instance_id: "{{ ec2id }}"
+    ec2_elbs: "{{ gitlab_elb_name }}"
+    state: present
+    wait: yes
+  when: ( inventory_hostname == "gitlabelb" )
+

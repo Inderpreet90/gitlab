@@ -98,8 +98,8 @@
         instance_port: 80
       - protocol: https
         load_balancer_port: 443
-        instance_protocol: http # optional, defaults to value of protocol setting
-        instance_port: 80
+        instance_protocol: https # optional, defaults to value of protocol setting
+        instance_port: 443
         # ssl certificate required for https or ssl
         ssl_certificate_id: "arn:aws:iam::{{ aws_account_id }}:server-certificate/{{ gitlab_ssl }}"
     stickiness:
@@ -132,3 +132,4 @@
     state: present
     wait: yes
   when: ( inventory_hostname == "gitlabelb" )
+

@@ -18,6 +18,12 @@ gitlab_elb_name: GitlabELB
 gitlab_launch_config: GitlabLC
 gitlab_as_name: GitlabASGroup
 gitlab_ami: gitlabAMI
+DB_username: gitlab
+DB_password: securepass
+DB_port: 5432
+DB_name: gitlabhq_production
+
+
 # Tags
 Server_name: GitLab
 route_table: gitlab-public

@@ -8,3 +8,6 @@ ec2_root_volume:
     delete_on_termination: true
 ec2_group: gitlabsg
 
+# Remember to change this to your live Domain name which you will use for your git server.
+gitlab_dns: git.mydns.com
+

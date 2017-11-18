@@ -8,7 +8,3 @@ multi_zone: yes
 license_model: postgresql-license
 engine_version: 9.4.7 
 publicly_accessible: no
-DB_username: gitlab
-DB_password: securepass
-DB_port: 5432
-DB_name: gitlabhq_production

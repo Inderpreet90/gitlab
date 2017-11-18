@@ -25,9 +25,7 @@
   replace:
     dest: /etc/gitlab/gitlab.rb
     regexp: "^external_url.*"
-    replace: "external_url 'https://{{ item.dns_name }}'"
-  with_items:
-    - "{{ ec2.instances }}"
+    replace: "external_url 'https://{{ gitlab_dns }}'"
 
 - name: Fetch NFS instance facts
   ec2_remote_facts:
@@ -82,9 +80,9 @@
     - nginx['ssl_certificate_key'] = "/etc/pki/tls/certs/selfsigned.pem"
     - gitlab_rails['db_adapter'] = "postgresql"
     - gitlab_rails['db_encoding'] = "unicode"    
-    - gitlab_rails['db_database'] = "gitlabhq_production"   
-    - gitlab_rails['db_username'] = "gitlab"
-    - gitlab_rails['db_password'] = "securepass"
+    - gitlab_rails['db_database'] = "{{ DB_name }}"   
+    - gitlab_rails['db_username'] = "{{ DB_username }}"
+    - gitlab_rails['db_password'] = "{{ DB_password }}"
     - gitlab_rails['db_host'] = "{{ rdsendp }}"
     - gitlab_rails['redis_host'] = "redis-gitlab.5ini6h.0001.use1.cache.amazonaws.com"
     - gitlab_rails['redis_port'] = 6379

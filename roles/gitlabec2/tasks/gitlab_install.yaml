@@ -21,12 +21,6 @@
     src: roles/gitlabec2/files/selfsigned.pem
     dest: /etc/pki/tls/certs/selfsigned.pem
 
-- name: Make changes in GitLab Config
-  replace:
-    dest: /etc/gitlab/gitlab.rb
-    regexp: "^external_url.*"
-    replace: "external_url 'https://{{ gitlab_dns }}'"
-
 - name: Fetch NFS instance facts
   ec2_remote_facts:
     region: "{{ aws_region }}"
@@ -69,23 +63,10 @@
   with_items:
     - "{{ rds_facts.instance }}"
 
-- name: Add some required config in gitlab config
-  lineinfile:
+- name: Update gitlab config
+  template:
+    src: roles/gitlabec2/templates/gitlab.rb.j2
     dest: /etc/gitlab/gitlab.rb
-    line: "{{ item }}"
-    state: present
-  with_items:
-    - nginx['redirect_http_to_https'] = true
-    - nginx['ssl_certificate'] = "/etc/pki/tls/certs/selfsigned.pem"
-    - nginx['ssl_certificate_key'] = "/etc/pki/tls/certs/selfsigned.pem"
-    - gitlab_rails['db_adapter'] = "postgresql"
-    - gitlab_rails['db_encoding'] = "unicode"    
-    - gitlab_rails['db_database'] = "{{ DB_name }}"   
-    - gitlab_rails['db_username'] = "{{ DB_username }}"
-    - gitlab_rails['db_password'] = "{{ DB_password }}"
-    - gitlab_rails['db_host'] = "{{ rdsendp }}"
-    - gitlab_rails['redis_host'] = "redis-gitlab.5ini6h.0001.use1.cache.amazonaws.com"
-    - gitlab_rails['redis_port'] = 6379
 
 - name: Re-configure GitLab
   command: /usr/bin/gitlab-ctl reconfigure

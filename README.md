@@ -30,3 +30,5 @@ ansible-playbook -i inventory/gitlabha playbooks/gitlab_ha.yaml
  - Remember to update "gitlab_dns" variable value.
 ## I think Ansible(v2.4) do not support AWS Auto Scaling group policies yet so you might need to create policy manually once everything is done. Here is the helpful link for that: http://docs.aws.amazon.com/autoscaling/latest/userguide/as-scaling-simple-step.html
 
+
+# GitLabECS (In-Progress)
